@@ -2,213 +2,114 @@
 
 @section('content')
 
-<!-- Navbar -->
-<nav class="flex items-center justify-between p-6 border-b">
-    <div class="text-2xl font-bold text-yellow-500">THRYFT</div>
-    <ul class="flex space-x-6">
-      <li><a href="{{ route('home') }}" class="hover:text-yellow-500">Home</a></li>
-      <li><a href="{{ route('shop') }}" class="hover:text-yellow-500">Shop</a></li>
-    </ul>
-    <div class="flex space-x-4">
-      <button>🔍</button>
-      <button>🛒</button>
-      <button>👤</button>
-    </div>
-</nav>
 
 <!-- Hero Shop Section -->
 <section class="relative">
   <img src="{{ asset('images/blur.jpg') }}" alt="Shop Banner" class="w-full h-64 object-cover">
   <div class="absolute inset-0 flex flex-col items-center justify-center text-center text-black">
     <h1 class="text-4xl font-bold mb-2">Shop</h1>
-    <p class="text-gray-700">Home > Shop</p>
+    <p class="text-gray-700">
+      <a href="{{ route('home') }}" class="hover:text-yellow-500 hover:underline">Home</a>
+      > Shop
+    </p>
   </div>
 </section>
 
-<!-- Filter & Sorting -->
-<section class="flex flex-wrap items-center justify-between p-6 bg-gray-50 border-b">
-  <div class="flex items-center space-x-4">
-    <button class="flex items-center space-x-1 text-gray-700 border px-3 py-1 rounded">
-      <span>☰</span>
-      <span>Filter</span>
-    </button>
-    <span class="text-sm text-gray-600">Showing 1–16 of 32 results</span>
-  </div>
-  <div class="flex items-center space-x-2">
-    <span class="text-sm">Show</span>
-    <input type="number" value="16" class="w-16 border rounded px-2 py-1 text-sm">
-    <span class="text-sm">Short by</span>
-    <select class="border rounded px-2 py-1 text-sm">
-      <option>Default</option>
-      <option>Price: Low to High</option>
-      <option>Price: High to Low</option>
-    </select>
-  </div>
+{{-- <h1 class="text-4xl font-bold mb-2" style="text-align: center">Shop</h1>
+<br> --}}
+
+<!-- Filter Kategori (Dropdown) -->
+<section class="px-6 py-4 bg-gray-50 border-b relative">
+    <div class="flex items-center justify-between">
+        <h2 class="text-xl font-semibold">Shop</h2>
+        <div class="relative" x-data="{ open: false }">
+            <button @click="open = !open"
+                class="inline-flex items-center px-4 py-2 bg-white border border-gray-300 rounded shadow-sm hover:bg-gray-100">
+                <svg class="w-5 h-5 mr-2 text-gray-700" fill="none" stroke="currentColor" stroke-width="2"
+                    viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round"
+                        d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2a1 1 0 01-.293.707L15 14.414V19a1 1 0 01-.553.894l-4 2A1 1 0 019 21v-6.586L3.293 6.707A1 1 0 013 6V4z" />
+                </svg>
+                <span class="text-gray-700">
+                    {{ request('category') ? $categories->firstWhere('id', request('category'))?->name ?? 'Filter Kategori' : 'Semua Kategori' }}
+                </span>
+
+                <svg class="w-4 h-4 ml-2 text-gray-700" fill="none" stroke="currentColor" stroke-width="2"
+                    viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round"
+                        d="M19 9l-7 7-7-7" />
+                </svg>
+            </button>
+
+            <!-- Dropdown -->
+            <div x-show="open" @click.away="open = false"
+                class="absolute right-0 mt-2 w-60 bg-white border border-gray-300 rounded shadow z-10 max-h-64 overflow-auto">
+                <a href="{{ route('shop') }}"
+                   class="block px-4 py-2 text-sm hover:bg-yellow-100 {{ request('category') ? 'text-gray-700' : 'bg-yellow-500 text-white' }}">
+                    Semua Kategori
+                </a>
+                @foreach($categories as $category)
+                    <a href="{{ route('shop', ['category' => $category->id]) }}"
+                       class="block px-4 py-2 text-sm hover:bg-yellow-100 {{ request('category') == $category->id ? 'bg-yellow-500 text-white' : 'text-gray-700' }}">
+                        {{ $category->name }}
+                    </a>
+                @endforeach
+            </div>
+        </div>
+    </div>
 </section>
 
-<!-- Product Grid -->
+<!-- Daftar Produk -->
 <section class="p-6 bg-white">
-  <div class="grid grid-cols-2 sm:grid-cols-4 gap-6">
-    <!-- Product Card 1 -->
-    <div class="bg-white rounded-lg shadow overflow-hidden">
-      <div class="h-44 overflow-hidden">
-        <img src="{{ asset('images/dress.jpg') }}" alt="Flower Dress" class="w-full h-full object-cover">
+    @if($products->isNotEmpty())
+        <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-6">
+        @foreach($products as $product)
+        <a href="{{ route('detail', ['category' => strtolower($product->category->name), 'id' => $product->id]) }}" class="block group">
+        <div class="bg-white rounded-lg shadow overflow-hidden hover:shadow-lg transition group">
+          <div class="overflow-hidden transition-all duration-500 ease-in-out">
+              <img src="{{ asset('images/' . $product->image) }}"
+                  alt="{{ $product->name }}"
+                  class="w-full h-64 object-contain group-hover:scale-85 transition-all duration-500 ease-in-out" />
+          </div>
+          <div class="p-4 text-center">
+              <h3 class="font-semibold text-gray-800">{{ $product->name }}</h3>
+              <p class="text-sm text-gray-500 mb-1">{{ $product->category->name ?? 'Tanpa Kategori' }}</p>
+              <p class="text-sm text-gray-700 mb-1">{{ Str::limit($product->description, 60) }}</p>
+              <p class="text-yellow-600 font-bold">Rp {{ number_format($product->price, 0, ',', '.') }}</p>
+          </div>
       </div>
-      <div class="p-4 text-center font-semibold text-gray-800">Flower Dress</div>
-      <div class="p-4 text-center text-gray-600">Rp. 75.000,00</div>
-    </div>
 
-    <!-- Product Card 2 -->
-    <div class="bg-white rounded-lg shadow overflow-hidden">
-      <div class="h-44 overflow-hidden">
-        <img src="{{ asset('images/kemeja.jpg') }}" alt="Blue Shirt" class="w-full h-full object-cover">
-      </div>
-      <div class="p-4 text-center font-semibold text-gray-800">Blue Shirt</div>
-      <div class="p-4 text-center text-gray-600">Rp. 25.000,00</div>
-    </div>
 
-    <!-- Product Card 3 -->
-    <div class="bg-white rounded-lg shadow overflow-hidden">
-      <div class="h-44 overflow-hidden">
-        <img src="{{ asset('images/jacket.jpg') }}" alt="Leather Jacket" class="w-full h-full object-cover">
-      </div>
-      <div class="p-4 text-center font-semibold text-gray-800">Leather Jacket</div>
-      <div class="p-4 text-center text-gray-600">Rp. 150.000,00</div>
-    </div>
 
-    <!-- Product Card 4 -->
-    <div class="bg-white rounded-lg shadow overflow-hidden">
-      <div class="h-44 overflow-hidden">
-        <img src="{{ asset('images/shirt.jpg') }}" alt="Flowy Blouse" class="w-full h-full object-cover">
-      </div>
-      <div class="p-4 text-center font-semibold text-gray-800">Flowy Blouse</div>
-      <div class="p-4 text-center text-gray-600">Rp. 30.000,00</div>
-    </div>
+          </a>
+      @endforeach
 
-    <!-- Product Card 5 -->
-    <div class="bg-white rounded-lg shadow overflow-hidden">
-      <div class="h-44 overflow-hidden">
-        <img src="{{ asset('images/niqab.jpg') }}" alt="Red Scarf" class="w-full h-full object-cover">
-      </div>
-      <div class="p-4 text-center font-semibold text-gray-800">White Niqab</div>
-      <div class="p-4 text-center text-gray-600">Rp. 50.000,00</div>
-    </div>
-
-    <!-- Product Card 6 -->
-    <div class="bg-white rounded-lg shadow overflow-hidden">
-      <div class="h-44 overflow-hidden">
-        <img src="{{ asset('images/lebaran.jpg') }}" alt="Vintage Jeans" class="w-full h-full object-cover">
-      </div>
-      <div class="p-4 text-center font-semibold text-gray-800">Lebaran Dress</div>
-      <div class="p-4 text-center text-gray-600">Rp. 120.000,00</div>
-    </div>
-
-    <!-- Product Card 7 -->
-    <div class="bg-white rounded-lg shadow overflow-hidden">
-      <div class="h-44 overflow-hidden">
-        <img src="{{ asset('images/sarung2.jpg') }}" alt="Black Boots" class="w-full h-full object-cover">
-      </div>
-      <div class="p-4 text-center font-semibold text-gray-800">Sarung</div>
-      <div class="p-4 text-center text-gray-600">Rp. 250.000,00</div>
-    </div>
-
-    <!-- Product Card 8 -->
-    <div class="bg-white rounded-lg shadow overflow-hidden">
-      <div class="h-44 overflow-hidden">
-        <img src="{{ asset('images/Peci.jpg') }}" alt="Striped T-Shirt" class="w-full h-full object-cover">
-      </div>
-      <div class="p-4 text-center font-semibold text-gray-800">Peci</div>
-      <div class="p-4 text-center text-gray-600">Rp. 65.000,00</div>
-    </div>
-
-    <!-- Product Card 9 -->
-    <div class="bg-white rounded-lg shadow overflow-hidden">
-      <div class="h-44 overflow-hidden">
-        <img src="{{ asset('images/gergaji mesin.jpg') }}" alt="Sunglasses" class="w-full h-full object-cover">
-      </div>
-      <div class="p-4 text-center font-semibold text-gray-800">Electric Saw</div>
-      <div class="p-4 text-center text-gray-600">Rp. 80.000,00</div>
-    </div>
-
-    <!-- Product Card 10 -->
-    <div class="bg-white rounded-lg shadow overflow-hidden">
-      <div class="h-44 overflow-hidden">
-        <img src="{{ asset('images/safety.jpg') }}" alt="Denim Jacket" class="w-full h-full object-cover">
-      </div>
-      <div class="p-4 text-center font-semibold text-gray-800">Safety Glasses</div>
-      <div class="p-4 text-center text-gray-600">Rp. 175.000,00</div>
-    </div>
-
-    <!-- Product Card 11 -->
-    <div class="bg-white rounded-lg shadow overflow-hidden">
-      <div class="h-44 overflow-hidden">
-        <img src="{{ asset('images/screw.jpg') }}" alt="Casual Shoes" class="w-full h-full object-cover">
-      </div>
-      <div class="p-4 text-center font-semibold text-gray-800">Screw</div>
-      <div class="p-4 text-center text-gray-600">Rp. 90.000,00</div>
-    </div>
-
-    <!-- Product Card 12 -->
-    <div class="bg-white rounded-lg shadow overflow-hidden">
-      <div class="h-44 overflow-hidden">
-        <img src="{{ asset('images/nailgun.jpg') }}" alt="Knit Sweater" class="w-full h-full object-cover">
-      </div>
-      <div class="p-4 text-center font-semibold text-gray-800">Nail Gun</div>
-      <div class="p-4 text-center text-gray-600">Rp. 100.000,00</div>
-    </div>
-
-    <!-- Product Card 13 -->
-    <div class="bg-white rounded-lg shadow overflow-hidden">
-      <div class="h-44 overflow-hidden">
-        <img src="{{ asset('images/sandal.jpg') }}" alt="Floral Skirt" class="w-full h-full object-cover">
-      </div>
-      <div class="p-4 text-center font-semibold text-gray-800">Sandal</div>
-      <div class="p-4 text-center text-gray-600">Rp. 55.000,00</div>
-    </div>
-
-    <!-- Product Card 14 -->
-    <div class="bg-white rounded-lg shadow overflow-hidden">
-      <div class="h-44 overflow-hidden">
-        <img src="{{ asset('images/slingman.jpg') }}" alt="Leather Bag" class="w-full h-full object-cover">
-      </div>
-      <div class="p-4 text-center font-semibold text-gray-800">Black Sling Bag</div>
-      <div class="p-4 text-center text-gray-600">Rp. 300.000,00</div>
-    </div>
-
-    <!-- Product Card 15 -->
-    <div class="bg-white rounded-lg shadow overflow-hidden">
-      <div class="h-44 overflow-hidden">
-        <img src="{{ asset('images/sunman.jpg') }}" alt="Sneakers" class="w-full h-full object-cover">
-      </div>
-      <div class="p-4 text-center font-semibold text-gray-800">Sunglasses</div>
-      <div class="p-4 text-center text-gray-600">Rp. 180.000,00</div>
-    </div>
-
-    <!-- Product Card 16 -->
-    <div class="bg-white rounded-lg shadow overflow-hidden">
-      <div class="h-44 overflow-hidden">
-        <img src="{{ asset('images/capman.jpg') }}" alt="Cozy Cardigan" class="w-full h-full object-cover">
-      </div>
-      <div class="p-4 text-center font-semibold text-gray-800">Brown Cap</div>
-      <div class="p-4 text-center text-gray-600">Rp. 85.000,00</div>
-    </div>
-  </div>
+        </div>
+    @else
+        <div class="text-center text-gray-500">
+            <p>Tidak ada produk untuk kategori ini.</p>
+        </div>
+    @endif
 </section>
 
-<!-- Footer -->
-<footer class="p-8 border-t mt-8">
-    <div class="flex flex-col md:flex-row justify-between">
-      <div class="mb-4 md:mb-0">
-        <div class="text-xl font-bold mb-2">THRYFT</div>
-        <p class="text-gray-500">© 2025 All rights reserved</p>
-      </div>
-      <div class="flex flex-col md:flex-row space-y-2 md:space-y-0 md:space-x-6">
-        <a href="#" class="text-gray-500 hover:text-yellow-500">Home</a>
-        <a href="#" class="text-gray-500 hover:text-yellow-500">Shop</a>
-        <a href="#" class="text-gray-500 hover:text-yellow-500">Stories</a>
-        <a href="#" class="text-gray-500 hover:text-yellow-500">Contact</a>
-      </div>
-    </div>
-  </footer>
+<!-- Service Info -->
+<div style="font-family: Arial, sans-serif; max-width: 800px; margin: 0 auto; display: flex; justify-content: space-between; align-items: flex-start; gap: 30px; padding: 20px; border: 1px solid #eee; border-radius: 8px;">
+  <div style="flex: 1;">
+    <h3 style="font-size: 18px; margin: 0 0 8px 0; color: #333;">Guaranteed Quality</h3>
+    <p style="margin: 0; font-size: 14px; color: #666;">Thoroughly inspected for your satisfaction</p>
+  </div>
+  <div style="width: 1px; background-color: #eee; height: 50px;"></div>
+  <div style="flex: 1;">
+    <h3 style="font-size: 18px; margin: 0 0 8px 0; color: #333;">Free Shipping</h3>
+    <p style="margin: 0; font-size: 14px; color: #666;">Order over Rp. 100.000,00</p>
+  </div>
+  <div style="width: 1px; background-color: #eee; height: 50px;"></div>
+  <div style="flex: 1;">
+    <h3 style="font-size: 18px; margin: 0 0 8px 0; color: #333;">24 / 7 Support</h3>
+    <p style="margin: 0; font-size: 14px; color: #666;">Dedicated support</p>
+  </div>
+</div>
+
+
 
 @endsection
